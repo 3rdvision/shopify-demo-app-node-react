@@ -11,6 +11,7 @@ const { ApiVersion } = require('@shopify/koa-shopify-graphql-proxy');
 const Router = require('koa-router');
 const { receiveWebhook, registerWebhook } = require('@shopify/koa-shopify-webhooks');
 const getSubscriptionUrl = require('./server/getSubscriptionUrl');
+const ripeShopifyApi = require('ripe-shopify-api');
 
 const port = parseInt(process.env.PORT, 10) || 3000;
 const dev = process.env.NODE_ENV !== 'production';
@@ -41,6 +42,12 @@ app.prepare().then(() => {
           secure: true,
           sameSite: 'none'
         });
+        ctx.cookies.set("shopOriginAccessToken", accessToken, {
+          httpOnly: false,
+          secure: true,
+          sameSite: 'none'
+        });
+
         const registration = await registerWebhook({
           address: `${HOST}/webhooks/products/create`,
           topic: 'PRODUCTS_CREATE',
@@ -66,6 +73,26 @@ app.prepare().then(() => {
   });
 
   server.use(graphQLProxy({ version: ApiVersion.April19 }));
+
+  router.get('/API', async ctx => {
+    console.log("Super duper /API");
+    const token = ctx.request.header.token;
+    const api = new ripeShopifyApi.API({ store: "platforme-alpha-test", token: token });
+    console.info(await api.listProducts({ limit: 25, keyword: "gato", after: null }));
+
+    fetch(`https://platforme-alpha-test.myshopify.com/admin/api/2019-07/products/count.json`, {
+    headers: {
+        'Content-Type': 'application/json',
+        "X-Shopify-Access-Token": "713213e70c38af97183077f78ee73648",
+    }
+    }).then((response) => {
+        return response.json();
+    }).then((data) => {
+        console.log(data);
+    }).catch((err) => {
+        console.error("DAMN IT CORS!", err);
+    })
+  });
 
   router.get('*', verifyRequest(), async (ctx) => {
     await handle(ctx.req, ctx.res);

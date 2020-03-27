@@ -3,10 +3,22 @@ import { ResourcePicker, TitleBar } from '@shopify/app-bridge-react';
 import store from 'store-js';
 import ResourceListWithProducts from '../components/ResourceList';
 
+import Cookies from "js-cookie";
+
 const img = 'https://cdn.shopify.com/s/files/1/0757/9955/files/empty-state.svg';
 
 class Index extends React.Component {
   state = { open: false };
+  interfaceCall() {
+      var fetchUrl = 'https://6fc891ec.ngrok.io/API';
+      var method = 'GET';
+      var header = {token: Cookies.get('shopOriginAccessToken')}
+      fetch(fetchUrl, { method: method, headers: header }).then((response) => response.json()).then((json) => console.log(json));
+  }
+  componentDidMount() {
+      console.log('componentDidMount');
+      this.interfaceCall();
+  }
   render() {
     const emptyState = !store.get('ids');
     return (
