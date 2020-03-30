@@ -113,7 +113,7 @@ app.prepare().then(() => {
         }
     };
 
-    console.info((await api.upsertMetafield( "4739696885898", metafield)));
+    console.info((await api.upsertProductMetafield( "4739696885898", metafield)));
   });
 
   router.get('*', verifyRequest(), async (ctx) => {
