@@ -9,15 +9,25 @@ const img = 'https://cdn.shopify.com/s/files/1/0757/9955/files/empty-state.svg';
 
 class Index extends React.Component {
   state = { open: false };
+
   interfaceCall() {
-      var fetchUrl = 'https://6fc891ec.ngrok.io/API';
+      var fetchUrl = 'https://731c23c0.ngrok.io/API';
       var method = 'GET';
-      var header = {token: Cookies.get('shopOriginAccessToken')}
+      var header = {token: Cookies.get('shopOriginAccessToken'), "Content-type": "application/json"}
       fetch(fetchUrl, { method: method, headers: header }).then((response) => response.json()).then((json) => console.log(json));
   }
+
+  interfaceCall2() {
+      console.log("interfaceCall2");
+      var fetchUrl = 'https://731c23c0.ngrok.io/API';
+      var header = {token: Cookies.get('shopOriginAccessToken'), "Content-type": "application/json"}
+      fetch(fetchUrl, { method: "PUT", body: JSON.stringify({a: "text"}), headers: header });
+  }
+
   componentDidMount() {
-      console.log('componentDidMount');
-      this.interfaceCall();
+    console.log('componentDidMount');
+    this.interfaceCall();
+    this.interfaceCall2();
   }
   render() {
     const emptyState = !store.get('ids');

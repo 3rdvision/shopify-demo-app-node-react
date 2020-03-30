@@ -17,6 +17,7 @@ const port = parseInt(process.env.PORT, 10) || 3000;
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
+const bodyParser = require('koa-bodyparser');
 
 const {
   SHOPIFY_API_SECRET_KEY,
@@ -78,7 +79,7 @@ app.prepare().then(() => {
     console.log("Super duper /API");
     const token = ctx.request.header.token;
     const api = new ripeShopifyApi.API({ store: "platforme-alpha-test", token: token });
-    console.info(await api.listProducts({ limit: 25, keyword: "gato", after: null }));
+    console.info((await api.listProducts()).data.products.edges[0].node.featuredImage);
 
     fetch(`https://platforme-alpha-test.myshopify.com/admin/api/2019-07/products/count.json`, {
     headers: {
@@ -94,12 +95,34 @@ app.prepare().then(() => {
     })
   });
 
+  router.put('/API', async ctx => {
+    console.log("Super duper POST on /API");
+    console.log("ctx.request.body", ctx.request.body);
+
+    const token = ctx.request.header.token;
+    console.log("token", token);
+    const api = new ripeShopifyApi.API({ store: "platforme-alpha-test", token: token });
+
+    const metafield = {
+        metafield: {
+            namespace: "platforme",
+            key: "query",
+            value: "?brand=sergio_rossi&model=sr1_running&p=sole:rubber_sr:black&p=front:royal_sr:black&p=back:royal_sr:black&p=tongue:royal_sr:black&p=side:technical_fabric_sr:black&p=loop:grosgrain_sr:black&p=plate:metal_sr:gold24&p=shadow:default:default",
+            description: "The RIPE Shopify API",
+            value_type: "string"
+        }
+    };
+
+    console.info((await api.upsertMetafield( "4739696885898", metafield)));
+  });
+
   router.get('*', verifyRequest(), async (ctx) => {
     await handle(ctx.req, ctx.res);
     ctx.respond = false;
     ctx.res.statusCode = 200;
   });
 
+  server.use(bodyParser());
   server.use(router.allowedMethods());
   server.use(router.routes());
 
